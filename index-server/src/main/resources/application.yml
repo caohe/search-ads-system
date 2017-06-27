@@ -1,0 +1,30 @@
+server:
+  port: 50051
+spring:
+  application:
+    name: index-server
+
+  datasource:
+    url: jdbc:mysql://localhost/search_ad
+    username: testuser
+    password: testpass
+    driver-class-name: com.mysql.jdbc.Driver
+
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+        use_sql_comments: true
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL5Dialect
+    hibernate.ddl-auto: create
+
+management:
+  security:
+    enabled: false
+
+cache:
+  server: 127.0.0.1
+  ad_port: 11211
+  tf_port: 11220
+  df_port: 11221
