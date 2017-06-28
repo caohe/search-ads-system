@@ -16,12 +16,15 @@ public class IndexClientWorker extends Thread {
         this.queries = queries;
         this.indexServer = indexServer;
         this.indexServerPort = indexServerPort;
+        this.adSelectResult = adSelectResult;
     }
 
     public void start() {
         IndexClient indexClient = new IndexClient(indexServer, indexServerPort);
         // TODO Add time out to return partial list of ads.
         List<Ad> ads = indexClient.getAds(queries);
-        adSelectResult.add(ads);
+        if (ads != null) {
+            adSelectResult.add(ads);
+        }
     }
 }

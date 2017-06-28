@@ -1,0 +1,1 @@
+java -jar ad-server/target/ad-server-1.0.0.BUILD-SNAPSHOT.jar

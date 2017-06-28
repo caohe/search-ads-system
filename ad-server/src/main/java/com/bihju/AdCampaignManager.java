@@ -16,7 +16,7 @@ import java.util.Set;
 @Component
 @Log4j
 public class AdCampaignManager {
-    private static double MIN_PRICE_THRESHOLD = 0.1;
+    private static double MIN_PRICE_THRESHOLD = 0.01;
 
     private AdService adService;
     private CampaignService campaignService;
@@ -56,7 +56,7 @@ public class AdCampaignManager {
             if (ad.getCostPerClick() <= campaign.getBudget() && ad.costPerClick >= MIN_PRICE_THRESHOLD) {
                 finalAds.add(ad);
                 campaign.setBudget(campaign.getBudget() - ad.costPerClick);
-                campaignService.updateCampaign(campaign);
+                campaignService.saveCampaign(campaign);
             }
         }
 

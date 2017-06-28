@@ -15,28 +15,33 @@ import java.util.Set;
 public class IndexBuilder {
     private final static int EXP = 72000; // 0: never expire
 
-    private MemcachedClient adCache;
+    private MemcachedClient indexCache1;
+    private MemcachedClient indexCache2;
 
-    public IndexBuilder(@Value("${cache.server}") String cacheServer, @Value("${cache.ad_port}") int adPort) {
+    public IndexBuilder(@Value("${cache.server}") String cacheServer, @Value("${cache.index_port1}") int indexPort1,
+                        @Value("${cache.index_port2}") int indexPort2) {
         try {
-            adCache = new MemcachedClient(new InetSocketAddress(cacheServer, adPort));
+            indexCache1 = new MemcachedClient(new InetSocketAddress(cacheServer, indexPort1));
+            indexCache2 = new MemcachedClient(new InetSocketAddress(cacheServer, indexPort2));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public boolean buildInvertedIndex(Ad ad) {
+    public boolean buildInvertedIndex(Ad ad, int cacheId) {
+        MemcachedClient indexCache = cacheId == 1 ? indexCache1 : indexCache2;
+
         String keyWords = ad.getKeyWords();
         List<String> tokens = Utility.cleanedTokenize(keyWords);
         for (String token : tokens) {
-            if (adCache.get(token) instanceof Set) {
-                Set<Long> adIdList = (Set<Long>) adCache.get(token);
+            if (indexCache.get(token) instanceof Set) {
+                Set<Long> adIdList = (Set<Long>) indexCache.get(token);
                 adIdList.add(ad.getAdId());
-                adCache.set(token, EXP, adIdList);
+                indexCache.set(token, EXP, adIdList);
             } else {
                 Set<Long> adIdList = new HashSet<>();
                 adIdList.add(ad.getAdId());
-                adCache.set(token, EXP, adIdList);
+                indexCache.set(token, EXP, adIdList);
             }
         }
 

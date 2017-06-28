@@ -20,37 +20,30 @@ import java.util.*;
 public class AdsSelector {
     private AdService adService;
     private final int NUM_OF_DOCS = 10840;
-    private Boolean enableTFIDF = true;
-    private String cacheServer;
-    private int adPort1;
-    private int adPort2;
+    private Boolean enableTFIDF = false;
 
-    private MemcachedClient adCacheClient;
+    private MemcachedClient indexCacheClient;
     private MemcachedClient tfCacheClient;
     private MemcachedClient dfCacheClient;
 
     @Autowired
     public AdsSelector(AdService adService, @Value("${cache.server}") String cacheServer,
-                       @Value("${cache.index_port1}") int adPort1,
-                       @Value("${cache.index_port2}") int adPort2,
+                       @Value("${cache.index_port}") int indexPort,
                        @Value("${cache.tf_port}") int tfPort,
                        @Value("${cache.df_port}") int dfPort) {
-        this.cacheServer = cacheServer;
         this.adService = adService;
-        this.adPort1 = adPort1;
-        this.adPort2 = adPort2;
+        indexCacheClient = getMemCachedClient(cacheServer + ":" + indexPort);
         tfCacheClient = getMemCachedClient(cacheServer + ":" + tfPort);
         dfCacheClient = getMemCachedClient(cacheServer + ":" + dfPort);
     }
 
-    public List<Ad> selectAds(Query query, int cacheId) {
+    public List<Ad> selectAds(Query query) {
         List<Ad> adList = new ArrayList<>();
         Map<Long, Integer> matchedAds = new HashMap<>();
-        adCacheClient = getMemCachedClient(cacheServer + ":" + (cacheId == 1 ? adPort1 : adPort2));
         try {
             for (String queryTerm : query.getTermList()) {
                 log.info("queryTerm = " + queryTerm);
-                Set<Long> adIdList = (Set<Long>) adCacheClient.get(queryTerm);
+                Set<Long> adIdList = (Set<Long>) indexCacheClient.get(queryTerm);
                 if (adIdList != null && adIdList.size() > 0) {
                     for (Long adId : adIdList) {
                         if (matchedAds.containsKey(adId)) {

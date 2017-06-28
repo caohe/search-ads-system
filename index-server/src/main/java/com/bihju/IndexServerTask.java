@@ -14,24 +14,21 @@ import java.io.IOException;
 public class IndexServerTask {
     private Server server;
     private IndexServerImpl indexServerImpl;
-    private int cacheId;
 
-    @Value("${grpc.server_port1}")
-    private int serverPort;
+    @Value("${grpc.server_port}")
+    private int grpcServerPort;
 
     @Autowired
     public IndexServerTask(IndexServerImpl indexServerImpl) {
         this.indexServerImpl = indexServerImpl;
     }
 
-    public void start(int cacheId) throws IOException {
-        this.cacheId = cacheId;
-        indexServerImpl.setCacheId(cacheId);
-        server = ServerBuilder.forPort(serverPort)
+    public void start() throws IOException {
+        server = ServerBuilder.forPort(grpcServerPort)
                 .addService(indexServerImpl)
                 .build()
                 .start();
-        log.info("Server started, listening to port: " + serverPort);
+        log.info("gRPC server started, listening to port: " + grpcServerPort);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override

@@ -2,7 +2,9 @@ package com.bihju;
 
 import com.bihju.adindex.Query;
 import com.bihju.domain.Ad;
+import com.bihju.domain.Campaign;
 import com.bihju.service.AdService;
+import com.bihju.service.CampaignService;
 import lombok.extern.log4j.Log4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -34,10 +36,12 @@ public class AdEngine {
     private static final String CATEGORY = "category";
     private static final String DESCRIPTION = "description";
     private static final String KEY_WORDS = "keyWords";
+    private static final String BUDGET = "budget";
     private static final int INDEX_SERVER_TIMEOUT = 1000;
 
     private IndexBuilder indexBuilder;
     private AdService adService;
+    private CampaignService campaignService;
     private QueryParser queryParser;
     private AdConverter adConverter;
     private AdRanker adRanker;
@@ -53,21 +57,20 @@ public class AdEngine {
     private int port1;
     @Value("${index.server2.port}")
     private int port2;
-    @Value("${cache.server}")
-    private String cacheSever;
-    @Value("${ad_file_path}")
-    private String adFilePath;
-    @Value("${cache.synonym_port}")
-    private int synonymPort;
-    @Value("${synonym_file_path}")
-    private String synonymFilePath;
+    @Value("${ad_file_path1}")
+    private String adFilePath1;
+    @Value("${ad_file_path2}")
+    private String adFilePath2;
+    @Value("${campaign_file_path}")
+    private String campaignFilePath;
 
     @Autowired
-    public AdEngine(IndexBuilder indexBuilder, AdService adService, QueryParser queryParser,
-                    AdConverter adConverter, AdRanker adRanker, AdFilter adFilter,
+    public AdEngine(IndexBuilder indexBuilder, AdService adService, CampaignService campaignService,
+                    QueryParser queryParser, AdConverter adConverter, AdRanker adRanker, AdFilter adFilter,
                     AdCampaignManager adCampaignManager, AdPricing adPricing) {
         this.indexBuilder = indexBuilder;
         this.adService = adService;
+        this.campaignService = campaignService;
         this.queryParser = queryParser;
         this.adConverter = adConverter;
         this.adRanker = adRanker;
@@ -76,7 +79,8 @@ public class AdEngine {
         this.adPricing = adPricing;
     }
 
-    public boolean preloadAds() {
+    public boolean preloadAds(int cacheId) {
+        String adFilePath = cacheId == 1 ? adFilePath1 : adFilePath2;
         File adFile = new File(getClass().getClassLoader().getResource(adFilePath).getFile());
 
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(adFile))) {
@@ -101,13 +105,35 @@ public class AdEngine {
                 List<String> keyWords = new ArrayList<>();
                 JSONArray keyWordsObj = adObject.isNull(KEY_WORDS) ? null : adObject.getJSONArray(KEY_WORDS);
                 if (keyWordsObj != null) {
-                    for (int i = 0; i < keyWords.size(); i++) {
+                    for (int i = 0; i < keyWordsObj.length(); i++) {
                         keyWords.add(keyWordsObj.getString(i));
                     }
                 }
                 ad.keyWords = String.join(",", keyWords);
                 adService.save(ad);
-                indexBuilder.buildInvertedIndex(ad);
+                indexBuilder.buildInvertedIndex(ad, cacheId);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean preloadCampaigns() {
+        File campaignFile = new File(getClass().getClassLoader().getResource(campaignFilePath).getFile());
+
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(campaignFile))) {
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                JSONObject adObject = new JSONObject(line);
+                Campaign campaign = new Campaign();
+                if (adObject.isNull(BUDGET) || adObject.isNull(CAMPAIGN_ID)) {
+                    continue;
+                }
+                campaign.setBudget(adObject.getDouble(BUDGET));
+                campaign.setCampaignId(adObject.getLong(CAMPAIGN_ID));
+                campaignService.saveCampaign(campaign);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -119,8 +145,7 @@ public class AdEngine {
     public List<Ad> selectAds(String query, String deviceId, String deviceIp, String queryCategory) {
         List<Ad> level0Ads = new ArrayList<>();
 
-        List<List<String>> rewrittenQueries = queryParser.queryRewrite(
-                query, cacheSever, synonymPort, synonymFilePath);
+        List<List<String>> rewrittenQueries = queryParser.queryRewrite(query);
         Set<Long> uniqueAds = new HashSet<>();
         for (List<String> queryTerms : rewrittenQueries) {
             AdSelectResult adSelectResult = getAdsFromIndexServer(queryTerms);

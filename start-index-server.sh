@@ -1,0 +1,1 @@
+java -jar -Dserver.port=$1 -Dgrpc.server_port=$2 index-server/target/index-server-1.0.0.BUILD-SNAPSHOT.jar

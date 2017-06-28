@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.Random;
+
 @Log4j
 @Service
 public class AdServiceImpl implements AdService {
@@ -32,11 +34,15 @@ public class AdServiceImpl implements AdService {
         Ad foundAd = adRepository.findByAdId(ad.getAdId());
         if (foundAd == null) {
             adRepository.save(ad);
+        } else {
+            Random random = new Random();
+            foundAd.setCostPerClick(random.nextDouble());
+            adRepository.save(foundAd);
         }
     }
 
     @Override
     public Ad getAd(long adId) {
-        return adRepository.getOne(adId);
+        return adRepository.findByAdId(adId);
     }
 }

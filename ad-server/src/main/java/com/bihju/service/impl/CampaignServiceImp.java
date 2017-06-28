@@ -23,7 +23,13 @@ public class CampaignServiceImp implements CampaignService {
     }
 
     @Override
-    public void updateCampaign(Campaign campaign) {
-        campaignRepository.save(campaign);
+    public void saveCampaign(Campaign campaign) {
+        Campaign foundCampaign = campaignRepository.findByCampaignId(campaign.getCampaignId());
+        if (foundCampaign != null) {
+            foundCampaign.setBudget(campaign.getBudget());
+            campaignRepository.save(foundCampaign);
+        } else {
+            campaignRepository.save(campaign);
+        }
     }
 }

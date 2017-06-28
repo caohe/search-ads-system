@@ -18,7 +18,7 @@ public class AdServiceImpl implements AdService {
 
     @Override
     public Ad.Builder getAd(long adId) {
-        com.bihju.domain.Ad domainAd = adRepository.findOne(adId);
+        com.bihju.domain.Ad domainAd = adRepository.findByAdId(adId);
         return AdConverter.cloneAd(domainAd);
 
     }

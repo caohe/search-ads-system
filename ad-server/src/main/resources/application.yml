@@ -25,7 +25,8 @@ management:
 
 cache:
   server: 127.0.0.1
-  ad_port: 11210
+  index_port1: 11211
+  index_port2: 11212
   feature_port: 11218
   synonym_port: 11219
   tf_port: 11220
@@ -42,4 +43,6 @@ index:
 ui_template_file_path: "ui.html"
 ad_template_file_path: "item.html"
 synonym_file_path: "synonyms_0502.txt"
-ad_file_path: "ads_0502.txt"
+ad_file_path1: "ads_0516_part1.txt"
+ad_file_path2: "ads_0516_part2.txt"
+campaign_file_path: "budget.txt"

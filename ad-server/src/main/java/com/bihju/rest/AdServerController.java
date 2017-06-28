@@ -41,7 +41,7 @@ public class AdServerController {
         String queryCategory = request.getParameter("qclass");
 
         List<Ad> ads = adEngine.selectAds(query, deviceId, deviceIp, queryCategory);
-        String result = uiTemplate;
+//        String result = uiTemplate;
         StringBuilder sb = new StringBuilder();
         for (Ad ad : ads) {
             log.info("Ad id = " + ad.getAdId());
@@ -55,15 +55,17 @@ public class AdServerController {
             sb.append(adContent);
         }
 
-        result = result.replace("$list$", sb.toString());
-        response.setContentType("text/html; charset=UTF-8");
-        response.getWriter().write(result);
+//        result = result.replace("$list$", sb.toString());
+//        response.setContentType("text/html; charset=UTF-8");
+//        response.getWriter().write(result);
         return ads;
     }
 
     @RequestMapping(value = "ads", method = RequestMethod.GET)
     public String preloadAds() {
-        adEngine.preloadAds();
+        adEngine.preloadAds(1);
+        adEngine.preloadAds(2);
+        adEngine.preloadCampaigns();
         return "Success";
     }
 }

@@ -25,11 +25,9 @@ management:
 
 cache:
   server: 127.0.0.1
-  index_port1: 11211
-  index_port2: 11212
+  index_port: 11211
   tf_port: 11220
   df_port: 11221
 
 grpc:
-  server_port1: 50051
-  server_port2: 50052
+  server_port: 50051

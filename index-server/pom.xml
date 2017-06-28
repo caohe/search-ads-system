@@ -10,7 +10,7 @@
         <version>1.0.0.BUILD-SNAPSHOT</version>
     </parent>
 
-    <artifactId>ads-index-server</artifactId>
+    <artifactId>index-server</artifactId>
     <version>1.0.0.BUILD-SNAPSHOT</version>
 
     <dependencies>
