@@ -1,0 +1,45 @@
+server:
+  port: 9001
+spring:
+  application:
+    name: ad-server
+
+  datasource:
+    url: jdbc:mysql://localhost/search_ad
+    username: testuser
+    password: testpass
+    driver-class-name: com.mysql.jdbc.Driver
+
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+        use_sql_comments: true
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL5Dialect
+    hibernate.ddl-auto: update
+
+management:
+  security:
+    enabled: false
+
+cache:
+  server: 127.0.0.1
+  ad_port: 11210
+  feature_port: 11218
+  synonym_port: 11219
+  tf_port: 11220
+  df_port: 11221
+
+index:
+  server1:
+    address: 127.0.0.1
+    port: 50051
+  server2:
+    address: 127.0.0.1
+    port: 50052
+
+ui_template_file_path: "ui.html"
+ad_template_file_path: "item.html"
+synonym_file_path: "synonyms_0502.txt"
+ad_file_path: "ads_0502.txt"

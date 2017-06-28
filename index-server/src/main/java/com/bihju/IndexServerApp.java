@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class IndexServerApp implements CommandLineRunner {
     private IndexServerTask indexServerTask;
+    private static int cacheId;
 
     @Autowired
     public IndexServerApp(IndexServerTask indexServerTask) {
@@ -17,11 +18,15 @@ public class IndexServerApp implements CommandLineRunner {
     }
 
     public static void main(String[] args) {
+        if (args.length < 1) {
+            log.error("Usage: IndexServerApp <cacheId>");
+        }
+        cacheId = Integer.parseInt(args[0]);
         SpringApplication.run(IndexServerApp.class, args);
     }
 
     @Override
     public void run(String... strings) throws Exception {
-        indexServerTask.start();
+        indexServerTask.start(cacheId);
     }
 }

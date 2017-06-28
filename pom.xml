@@ -19,7 +19,8 @@
     <description>Retrieve Ads for search engine</description>
 
     <modules>
-    <module>index-server</module>
+        <module>index-server</module>
+        <module>ad-server</module>
     </modules>
 
     <properties>

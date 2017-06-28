@@ -1,6 +1,6 @@
 package com.bihju;
 
-import com.bihju.Service.AdService;
+import com.bihju.service.AdService;
 import com.bihju.adindex.Ad;
 import com.bihju.adindex.Query;
 import lombok.extern.log4j.Log4j;
@@ -21,6 +21,9 @@ public class AdsSelector {
     private AdService adService;
     private final int NUM_OF_DOCS = 10840;
     private Boolean enableTFIDF = true;
+    private String cacheServer;
+    private int adPort1;
+    private int adPort2;
 
     private MemcachedClient adCacheClient;
     private MemcachedClient tfCacheClient;
@@ -28,18 +31,22 @@ public class AdsSelector {
 
     @Autowired
     public AdsSelector(AdService adService, @Value("${cache.server}") String cacheServer,
-                       @Value("${cache.ad_port}") int adPort,
+                       @Value("${cache.index_port1}") int adPort1,
+                       @Value("${cache.index_port2}") int adPort2,
                        @Value("${cache.tf_port}") int tfPort,
                        @Value("${cache.df_port}") int dfPort) {
+        this.cacheServer = cacheServer;
         this.adService = adService;
-        adCacheClient = getMemCachedClient(cacheServer + ":" + adPort);
+        this.adPort1 = adPort1;
+        this.adPort2 = adPort2;
         tfCacheClient = getMemCachedClient(cacheServer + ":" + tfPort);
         dfCacheClient = getMemCachedClient(cacheServer + ":" + dfPort);
     }
 
-    public List<Ad> selectAds(Query query) {
+    public List<Ad> selectAds(Query query, int cacheId) {
         List<Ad> adList = new ArrayList<>();
         Map<Long, Integer> matchedAds = new HashMap<>();
+        adCacheClient = getMemCachedClient(cacheServer + ":" + (cacheId == 1 ? adPort1 : adPort2));
         try {
             for (String queryTerm : query.getTermList()) {
                 log.info("queryTerm = " + queryTerm);

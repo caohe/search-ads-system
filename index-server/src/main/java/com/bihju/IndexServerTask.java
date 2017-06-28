@@ -14,8 +14,9 @@ import java.io.IOException;
 public class IndexServerTask {
     private Server server;
     private IndexServerImpl indexServerImpl;
+    private int cacheId;
 
-    @Value("${server.port}")
+    @Value("${grpc.server_port1}")
     private int serverPort;
 
     @Autowired
@@ -23,7 +24,9 @@ public class IndexServerTask {
         this.indexServerImpl = indexServerImpl;
     }
 
-    public void start() throws IOException {
+    public void start(int cacheId) throws IOException {
+        this.cacheId = cacheId;
+        indexServerImpl.setCacheId(cacheId);
         server = ServerBuilder.forPort(serverPort)
                 .addService(indexServerImpl)
                 .build()

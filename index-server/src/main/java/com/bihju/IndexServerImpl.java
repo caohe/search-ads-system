@@ -13,10 +13,15 @@ import java.util.List;
 public class IndexServerImpl extends AdsIndexGrpc.AdsIndexImplBase {
     private final static double RELEVANCE_SCORE_THRESHOLD = 0.07;
     private AdsSelector adsSelector;
+    private int cacheId;
 
     @Autowired
     public IndexServerImpl(AdsSelector adsSelector) {
         this.adsSelector = adsSelector;
+    }
+
+    public void setCacheId(int cacheId) {
+        this.cacheId = cacheId;
     }
 
     @Override
@@ -26,7 +31,7 @@ public class IndexServerImpl extends AdsIndexGrpc.AdsIndexImplBase {
         for (int i = 0; i < adsRequest.getQueryCount(); i++) {
             Query query = adsRequest.getQuery(i);
 
-            List<Ad> adsCandidates = adsSelector.selectAds(query);
+            List<Ad> adsCandidates = adsSelector.selectAds(query, cacheId);
             AdsReply.Builder replyBuilder = AdsReply.newBuilder();
             for (Ad ad : adsCandidates) {
                 if (ad.getRelevanceScore() > RELEVANCE_SCORE_THRESHOLD) {
