@@ -145,25 +145,34 @@ public class AdEngine {
     public List<Ad> selectAds(String query, String deviceId, String deviceIp, String queryCategory) {
         List<Ad> level0Ads = new ArrayList<>();
 
-        List<List<String>> rewrittenQueries = queryParser.queryRewrite(query);
-        Set<Long> uniqueAds = new HashSet<>();
-        for (List<String> queryTerms : rewrittenQueries) {
+        boolean enable_query_rewrite = false; // turn off for now
+        if (enable_query_rewrite) {
+            List<List<String>> rewrittenQueries = queryParser.queryRewrite(query);
+            Set<Long> uniqueAds = new HashSet<>();
+            for (List<String> queryTerms : rewrittenQueries) {
+                AdSelectResult adSelectResult = getAdsFromIndexServer(queryTerms);
+                log.info("Number of level0Ads from index server = " + adSelectResult.getAdList().size());
+
+                for (com.bihju.adindex.Ad adindexAd : adSelectResult.getAdList()) {
+                    if (!uniqueAds.contains(adindexAd.getAdId())) {
+                        uniqueAds.add(adindexAd.getAdId());
+                        Ad ad = adConverter.cloneAd(adindexAd);
+                        level0Ads.add(ad);
+                    }
+                }
+            }
+        } else {
+            List<String> queryTerms = Utility.cleanedTokenize(query);
             AdSelectResult adSelectResult = getAdsFromIndexServer(queryTerms);
             log.info("Number of level0Ads from index server = " + adSelectResult.getAdList().size());
 
-            for (com.bihju.adindex.Ad adindexAd : adSelectResult.getAdList()) {
-                log.info("Relevance score = " + adindexAd.getRelevanceScore());
-
-                if (!uniqueAds.contains(adindexAd.getAdId())) {
-                    uniqueAds.add(adindexAd.getAdId());
-                    Ad ad = adConverter.cloneAd(adindexAd);
-                    level0Ads.add(ad);
-                }
+            for(com.bihju.adindex.Ad adindexAd : adSelectResult.getAdList()) {
+                Ad ad = adConverter.cloneAd(adindexAd);
+                level0Ads.add(ad);
             }
-
-            log.info("Number of L0 level0Ads = " + level0Ads.size());
         }
 
+        log.info("Number of L0 level0Ads = " + level0Ads.size());
         List<Ad> rankedAds = adRanker.rankAds(level0Ads);
         log.info("After ranking, ads size = " + rankedAds.size());
 

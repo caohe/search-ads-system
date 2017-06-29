@@ -34,6 +34,7 @@ public class IndexServerImpl extends AdsIndexGrpc.AdsIndexImplBase {
                 }
             }
 
+            log.info("Found " + replyBuilder.getAdCount() + " ads");
             AdsReply reply = replyBuilder.build();
             response.onNext(reply);
             response.onCompleted();
