@@ -40,8 +40,6 @@ index:
     address: 127.0.0.1
     port: 50052
 
-ui_template_file_path: "ui.html"
-ad_template_file_path: "item.html"
 synonym_file_path: "synonyms_0502.txt"
 ad_file_path1: "ads_0516_part1.txt"
 ad_file_path2: "ads_0516_part2.txt"
