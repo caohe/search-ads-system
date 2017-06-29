@@ -53,6 +53,7 @@ public class QueryParser {
         synonymCache.set((REWRITE_PREFIX + query).replace(" ", "_"), EXP, rewrittenQueries);
     }
 
+    // TODO Load synonyms to cache for faster access
     private List<String> calculateRewrittenQueries(String query) {
         List<String> searchKeys = Arrays.asList(query.split(" "));
         Map<String, List<String>> map = new HashMap<>();
