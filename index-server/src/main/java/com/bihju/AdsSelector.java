@@ -20,7 +20,7 @@ import java.util.*;
 public class AdsSelector {
     private AdService adService;
     private final int NUM_OF_DOCS = 10840;
-    private Boolean enableTFIDF = false;
+    private Boolean enableTFIDF = true;
 
     private MemcachedClient indexCacheClient;
     private MemcachedClient tfCacheClient;
