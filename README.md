@@ -48,6 +48,7 @@ then send to ads selector.
 ```bash
 > /usr/local/bin/memcached -d -p 11211    // index cache 1
 > /usr/local/bin/memcached -d -p 11212    // index cache 2
+> /usr/local/bin/memcached -d -p 11219    // synonym cache
 > /usr/local/bin/memcached -d -p 11220    // tf cache
 > /usr/local/bin/memcached -d -p 11221    // df cache
 
@@ -123,13 +124,38 @@ sh start-index-server.sh 9003 50052
 ### Test search ads
 Open Chrome, enter the test url:
 ```bash
-localhost:9001/ad-server/ads/bluetooth speaker
+http://localhost:9001/ad-server/ads/bluetooth%20speaker
 ```
-Should see a page of ads displayed.
-![Searched Ads](/SearchedAds.png)
+Should see a list of ads displayed.
+```aidl
+[
+    {
+        "id": 21957,
+        "adId": 5276,
+        "campaignId": 8061,
+        "keyWords": "nakamichi,shockwafe,pro,7.1ch,400w,45,sound,bar,8,wireless,subwoofer,rear,satellite,speaker",
+        "relevanceScore": 0,
+        "pClick": 0,
+        "bidPrice": 2.5,
+        "rankScore": 0,
+        "qualityScore": 0,
+        "costPerClick": 0.8223724194557837,
+        "position": 0,
+        "title": "Nakamichi Shockwafe Pro 7.1Ch 400W 45\" Sound Bar with 8” Wireless Subwoofer & Rear Satellite Speakers",
+        "price": 0,
+        "thumbnail": "https://images-na.ssl-images-amazon.com/images/I/41Cbat45+hL._AC_US218_.jpg",
+        "description": "",
+        "brand": "Nakamichi",
+        "detailUrl": "",
+        "query": null,
+        "category": "Electronics",
+        "pclick": 0
+    }
+]
+```
 ### Test offline query rewrite
 ```
-> cd src/main/python
+> cd python
 > sh test_query_rewrite.sh
 ```
 Should see the list of original_query [rewrite_queries_list]
@@ -140,7 +166,7 @@ bluetooth_speaker ['zenbre wireless', 'zenbre rugged', 'zenbre speaker', 'dustpr
 ```
 Check the key value pair in memcached with key = "REWRITE_" + <original_query>
 ```bash
-> telnet 127.0.0.1 11211
+> telnet 127.0.0.1 11219
 > get REWRITE_bluetooth_speaker
 VALUE REWRITE_bluetooth_speaker 32 260
 [

@@ -1,0 +1,2 @@
+{"synonyms": ["zenbre", "dustproof"], "word": "bluetooth"}
+{"synonyms": ["wireless", "rugged"], "word": "speaker"}
