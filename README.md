@@ -1,5 +1,5 @@
 # Search Ads System
-Implement a search ads system which returns a list of recommended Ads for a query.
+Implement a search ads system which returns a list of recommended Ads for a search query.
 
 ## Development environment
 - **Memcached** is used to store rewritten queries, reverse indexes... etc.
