@@ -7,8 +7,8 @@ Implement a search ads system which returns a list of recommended Ads for a sear
 - **spymemcached** is used in Java to connect to memcached server.
 ## Features
 - Ad server receives query from UI, performs query understanding.
-- AdSelector sends queries to index servers through gRPC to retrieve level 0 ads.
-- AdSelector calculates relevance score of level 0 ads. 
+- AdSelector sends queries to index servers through gRPC to retrieve level 0 Ads.
+- Index server gets a list of Ads candidates from cache by query terms, and calculates relevance score of each Ads, return the level 0 Ads with relevance score larger than a threshold.
 - AdRanker ranks ads by relevance score, pClick and bid price, return level 1 ads.
 - AdFilter selects top K ads from level 1 ads.
 - AdCampaignManger picks one ad per campaignId from top K ads.
