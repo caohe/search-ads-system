@@ -6,7 +6,7 @@ Implement a search Ads system which returns a list of recommended Ads for a sear
 - **MySQL DB** is used to store the ads and campaigns information.
 - **spymemcached** is used in Java to connect to memcached server.
 ## Features
-- Ad server receives query from UI, performs query understanding.
+- Ad server receives a query from UI, performs query understanding.
 - AdSelector sends queries to index servers through gRPC to retrieve level 0 Ads.
 - Index server gets a list of Ad candidates from cache by query terms, and calculates relevance score of each Ad, returns the level 0 Ads with relevance score larger than a threshold.
 - AdRanker ranks Ads by relevance score, pClick and bid price, returns level 1 Ads.
