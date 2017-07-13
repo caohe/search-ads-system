@@ -5,6 +5,7 @@ Implement a search Ads system which returns a list of recommended Ads for a sear
 - **Memcached** is used to store rewritten queries, reverse indexes... etc.
 - **MySQL DB** is used to store the ads and campaigns information.
 - **spymemcached** is used in Java to connect to memcached server.
+- **gRPC** is used to communicate between Ads server and index servers.
 ## Features
 - Ad server receives a query from UI, performs query understanding.
 - AdSelector sends queries to index servers through gRPC to retrieve level 0 Ads.
