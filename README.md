@@ -44,6 +44,7 @@ Implement a search Ads system which returns a list of recommended Ads for a sear
 > /usr/local/bin/memcached -d -p 11219    // synonym cache
 > /usr/local/bin/memcached -d -p 11220    // tf cache
 > /usr/local/bin/memcached -d -p 11221    // df cache
+> /usr/local/bin/memcached -d -p 11222    // feature cache
 
 ```
 ### Prepare DB

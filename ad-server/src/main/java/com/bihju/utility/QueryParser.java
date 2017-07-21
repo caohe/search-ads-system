@@ -19,7 +19,7 @@ public class QueryParser {
     private MemcachedClient synonymCache;
 
     @Autowired
-    public QueryParser(@Value("${synonym_file_path}") String synonymFilePath,
+    public QueryParser(@Value("classpath:${synonym_file_path}") String synonymFilePath,
                        @Value("${cache.server}") String cacheServer,
                        @Value("${cache.synonym_port}") int synonymPort) {
         this.synonymFilePath = synonymFilePath;

@@ -27,10 +27,10 @@ cache:
   server: 127.0.0.1
   index_port1: 11211
   index_port2: 11212
-  feature_port: 11218
   synonym_port: 11219
   tf_port: 11220
   df_port: 11221
+  feature_port: 11222
 
 index:
   server1:
@@ -44,3 +44,4 @@ synonym_file_path: "synonyms_0502.txt"
 ad_file_path1: "ads_0516_part1.txt"
 ad_file_path2: "ads_0516_part2.txt"
 campaign_file_path: "budget.txt"
+logistic-regression-model-file: "ctrLogisticRegression.txt"

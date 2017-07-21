@@ -37,7 +37,7 @@ public class AdServerController {
         String deviceIp = request.getParameter("dip");
         String queryCategory = request.getParameter("qclass");
 
-        return adEngine.selectAds(query, deviceId, deviceIp, queryCategory);
+        return adEngine.selectAds(query, deviceIp, deviceId, queryCategory);
     }
 
     @RequestMapping(value = "ads", method = RequestMethod.GET)

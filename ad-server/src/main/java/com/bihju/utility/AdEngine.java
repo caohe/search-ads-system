@@ -5,17 +5,20 @@ import com.bihju.domain.Ad;
 import com.bihju.domain.Campaign;
 import com.bihju.service.AdService;
 import com.bihju.service.CampaignService;
+import com.google.common.base.Strings;
 import lombok.extern.log4j.Log4j;
+import net.spy.memcached.AddrUtil;
+import net.spy.memcached.ConnectionFactoryBuilder;
+import net.spy.memcached.FailureMode;
+import net.spy.memcached.MemcachedClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +41,16 @@ public class AdEngine {
     private static final String KEY_WORDS = "keyWords";
     private static final String BUDGET = "budget";
     private static final int INDEX_SERVER_TIMEOUT = 1000;
+    private static final String DEVICE_IP_CLICK_PREFIX = "dipc_";
+    private static final String DEVICE_IP_IMPRESSION_PREFIX = "dipi_";
+    private static final String DEVICE_ID_CLICK_PREFIX = "didc_";
+    private static final String DEVICE_ID_IMPRESSION_PREFIX = "didi_";
+    private static final String AD_ID_CLICK_PREFIX = "aidc_";
+    private static final String AD_ID_IMPRESSION_PREFIX = "aidi_";
+    private static final String QUERY_CAMPAIGN_ID_CLICK_PREFIX = "qcidc_";
+    private static final String QUERY_CAMPAIGN_ID_IMPRESSION_PREFIX = "qcidi_";
+    private static final String QUERY_AD_ID_CLICK_PREFIX = "qaidc_";
+    private static final String QUERY_AD_ID_IMPRESSION_PREFIX = "qaidi_";
 
     private IndexBuilder indexBuilder;
     private AdService adService;
@@ -49,6 +62,10 @@ public class AdEngine {
     private AdCampaignManager adCampaignManager;
     private AdPricing adPricing;
     private AdAllocation adAllocation;
+    private MemcachedClient featureCacheClient;
+    private CTRModel cTrModel;
+    private boolean isEnablePClick = true;
+    private ResourceLoader resourceLoader;
 
     @Value("${index.server1.address}")
     private String server1;
@@ -58,17 +75,19 @@ public class AdEngine {
     private int port1;
     @Value("${index.server2.port}")
     private int port2;
-    @Value("${ad_file_path1}")
+    @Value("classpath:${ad_file_path1}")
     private String adFilePath1;
-    @Value("${ad_file_path2}")
+    @Value("classpath:${ad_file_path2}")
     private String adFilePath2;
-    @Value("${campaign_file_path}")
+    @Value("classpath:${campaign_file_path}")
     private String campaignFilePath;
 
     @Autowired
     public AdEngine(IndexBuilder indexBuilder, AdService adService, CampaignService campaignService,
                     QueryParser queryParser, AdConverter adConverter, AdRanker adRanker, AdFilter adFilter,
-                    AdCampaignManager adCampaignManager, AdPricing adPricing, AdAllocation adAllocation) {
+                    AdCampaignManager adCampaignManager, AdPricing adPricing, AdAllocation adAllocation,
+                    @Value("${cache.server}") String cacheServer, @Value("${cache.df_port}") int featurePort,
+                    CTRModel cTrModel, ResourceLoader resourceLoader) {
         this.indexBuilder = indexBuilder;
         this.adService = adService;
         this.campaignService = campaignService;
@@ -79,13 +98,19 @@ public class AdEngine {
         this.adCampaignManager = adCampaignManager;
         this.adPricing = adPricing;
         this.adAllocation = adAllocation;
+        if (!Strings.isNullOrEmpty(cacheServer)) {
+            this.featureCacheClient = getMemCachedClient(cacheServer + ":" + featurePort);
+        }
+        this.cTrModel = cTrModel;
+        this.resourceLoader = resourceLoader;
     }
 
     public boolean preloadAds(int cacheId) {
         String adFilePath = cacheId == 1 ? adFilePath1 : adFilePath2;
-        File adFile = new File(getClass().getClassLoader().getResource(adFilePath).getFile());
+//        File adFile = new File(getClass().getClassLoader().getResource(adFilePath).getFile());
 
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(adFile))) {
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(resourceLoader.getResource(adFilePath).getInputStream()))) {
+//        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(adFile))) {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 JSONObject adObject = new JSONObject(line);
@@ -144,7 +169,7 @@ public class AdEngine {
         return false;
     }
 
-    public List<Ad> selectAds(String query, String deviceId, String deviceIp, String queryCategory) {
+    public List<Ad> selectAds(String query, String deviceIp, String deviceId, String queryCategory) {
         List<Ad> level0Ads = new ArrayList<>();
 
         boolean enable_query_rewrite = false; // turn off for now
@@ -171,6 +196,12 @@ public class AdEngine {
             for(com.bihju.adindex.Ad adindexAd : adSelectResult.getAdList()) {
                 Ad ad = adConverter.cloneAd(adindexAd);
                 level0Ads.add(ad);
+            }
+        }
+
+        if (isEnablePClick) {
+            for(Ad ad : level0Ads) {
+                predictCTR(ad, query, deviceIp, deviceId, queryCategory);
             }
         }
 
@@ -224,5 +255,56 @@ public class AdEngine {
         }
 
         return adSelectResult;
+    }
+
+    private MemcachedClient getMemCachedClient(String cacheAddress) {
+        try {
+            return new MemcachedClient(
+                    new ConnectionFactoryBuilder()
+                            .setDaemon(true)
+                            .setFailureMode(FailureMode.Retry)
+                            .build(), AddrUtil.getAddresses(cacheAddress));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private void predictCTR(Ad ad, String query, String deviceId, String deviceIp, String queryCategory) {
+        // Features has to be on the same order as the one used for training.
+        ArrayList<Double> features = new ArrayList<>();
+
+        features.add(getFeatureValue(DEVICE_IP_CLICK_PREFIX + deviceIp));
+        features.add(getFeatureValue(DEVICE_IP_IMPRESSION_PREFIX + deviceIp));
+
+        features.add(getFeatureValue(DEVICE_ID_CLICK_PREFIX + deviceId));
+        features.add(getFeatureValue(DEVICE_ID_IMPRESSION_PREFIX + deviceId));
+
+        features.add(getFeatureValue(AD_ID_CLICK_PREFIX + ad.adId));
+        features.add(getFeatureValue(AD_ID_IMPRESSION_PREFIX + ad.adId));
+
+        features.add(getFeatureValue(QUERY_CAMPAIGN_ID_CLICK_PREFIX + query + "_" + ad.campaignId));
+        features.add(getFeatureValue(QUERY_CAMPAIGN_ID_IMPRESSION_PREFIX + query + "_" + ad.campaignId));
+
+        features.add(getFeatureValue(QUERY_AD_ID_CLICK_PREFIX + query + "_" + ad.adId));
+        features.add(getFeatureValue(QUERY_AD_ID_IMPRESSION_PREFIX + query + "_" + ad.adId));
+
+        // Set to a large number if matches.
+        features.add(queryCategory.equals(ad.category) ? 1000000.0 : 0.0);
+
+        ad.pClick = cTrModel.predictCTRWithLogisticRegression(features);
+        log.info("ad.pClick = " + ad.pClick);
+    }
+
+    private double getFeatureValue(String key) {
+        double value = 0.0;
+        @SuppressWarnings("unchecked")
+        String valueString = (String)featureCacheClient.get(key);
+        if (!Strings.isNullOrEmpty(valueString)) {
+            value = Double.parseDouble(valueString);
+        }
+
+        log.info("Key" + key + ", value = " + value);
+        return value;
     }
 }
