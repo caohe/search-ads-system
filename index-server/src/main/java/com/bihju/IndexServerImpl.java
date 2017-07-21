@@ -1,6 +1,10 @@
 package com.bihju;
 
-import com.bihju.adindex.*;
+import com.bihju.adindex.Ad;
+import com.bihju.adindex.AdsIndexGrpc;
+import com.bihju.adindex.AdsReply;
+import com.bihju.adindex.AdsRequest;
+import com.bihju.adindex.Query;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
