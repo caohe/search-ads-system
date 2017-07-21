@@ -1,25 +1,26 @@
 # Search Ads System
-Implement a search ads system.
+Implement a search Ads system which returns a list of recommended Ads for a search query.
 
 ## Development environment
 - **Memcached** is used to store rewritten queries, reverse indexes... etc.
 - **MySQL DB** is used to store the ads and campaigns information.
 - **spymemcached** is used in Java to connect to memcached server.
+- **gRPC** is used to communicate between Ads server and index servers.
 ## Features
-- Ad server receives query from UI, performs query understanding.
-- AdSelector sends queries to index servers through gRPC to retrieve level 0 ads.
-- AdSelector calculates relevance score of level 0 ads. 
-- AdRanker ranks ads by relevance score, pClick and bid price, return level 1 ads.
-- AdFilter selects top K ads from level 1 ads.
-- AdCampaignManger picks one ad per campaignId from top K ads.
-- AdPricing sets cost-per-click of each ads.
-- AdCampaignManager choose final ads and deduct budget for each campaign.
+- Ad server receives a query from UI, performs query understanding.
+- AdSelector sends queries to index servers through gRPC to retrieve level 0 Ads.
+- Index server gets a list of Ad candidates from cache by query terms, and calculates relevance score of each Ad, returns the level 0 Ads with relevance score larger than a threshold.
+- AdRanker ranks Ads by relevance score, pClick and bid price, returns level 1 Ads.
+- AdFilter selects top K ads from level 1 Ads.
+- AdCampaignManger picks one Ad per campaignId from top K ads.
+- AdPricing sets cost-per-click for each Ad.
+- AdCampaignManager choose final Ads and deducts budget for each campaign.
 - Ad server returns the final list to UI.
 - Online query rewrite
     - For each query received, web server looks for rewritten queries in key value store.
-    - If found, use the rewritten queries to retrieve more matching ads.
+    - If found, use the rewritten queries to retrieve more matching Ads.
     - If not found, look up synonym table for each query term and construct rewritten query online, 
-      then send to ads selector.
+      then send to Ads selector.
 - For example:
     ```bash
     query = "body care"
