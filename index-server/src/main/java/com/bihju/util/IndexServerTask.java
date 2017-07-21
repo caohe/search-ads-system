@@ -1,4 +1,4 @@
-package com.bihju;
+package com.bihju.util;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;

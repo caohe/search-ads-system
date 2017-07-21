@@ -1,4 +1,4 @@
-package com.bihju;
+package com.bihju.util;
 
 import com.bihju.service.AdService;
 import com.bihju.adindex.Ad;

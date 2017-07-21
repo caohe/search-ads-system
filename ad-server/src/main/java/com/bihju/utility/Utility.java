@@ -1,4 +1,4 @@
-package com.bihju;
+package com.bihju.utility;
 
 import net.spy.memcached.AddrUtil;
 import net.spy.memcached.ConnectionFactoryBuilder;

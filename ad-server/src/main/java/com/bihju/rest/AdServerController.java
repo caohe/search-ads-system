@@ -1,6 +1,6 @@
 package com.bihju.rest;
 
-import com.bihju.AdEngine;
+import com.bihju.utility.AdEngine;
 import com.bihju.domain.Ad;
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;

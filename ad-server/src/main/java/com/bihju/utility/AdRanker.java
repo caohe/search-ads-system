@@ -1,4 +1,4 @@
-package com.bihju;
+package com.bihju.utility;
 
 import com.bihju.domain.Ad;
 import lombok.extern.log4j.Log4j;
