@@ -33,9 +33,9 @@ public class AdServerController {
     @RequestMapping(value = "ads/{query}", method = RequestMethod.GET)
     public List<Ad> searchAds(@PathVariable String query, HttpServletRequest request,
                               HttpServletResponse response) throws IOException {
-        String deviceId = request.getParameter("did");
-        String deviceIp = request.getParameter("dip");
-        String queryCategory = request.getParameter("qclass");
+        String deviceId = request.getParameter("did") == null ? "" : request.getParameter("did");
+        String deviceIp = request.getParameter("dip") == null ? "" : request.getParameter("dip");
+        String queryCategory = request.getParameter("qclass") == null ? "" : request.getParameter("qclass");
 
         return adEngine.selectAds(query, deviceIp, deviceId, queryCategory);
     }

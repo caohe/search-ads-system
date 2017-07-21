@@ -5,6 +5,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -17,14 +18,17 @@ public class QueryParser {
     private String synonymFilePath;
     private File synonymFile;
     private MemcachedClient synonymCache;
+    private ResourceLoader resourceLoader;
 
     @Autowired
     public QueryParser(@Value("classpath:${synonym_file_path}") String synonymFilePath,
                        @Value("${cache.server}") String cacheServer,
-                       @Value("${cache.synonym_port}") int synonymPort) {
+                       @Value("${cache.synonym_port}") int synonymPort,
+                        ResourceLoader resourceLoader) {
         this.synonymFilePath = synonymFilePath;
         synonymCache = Utility.getMemCachedClient(cacheServer + ":" + synonymPort);
-        this.synonymFile = new File(getClass().getClassLoader().getResource(synonymFilePath).getFile());
+//        this.synonymFile = new File(getClass().getClassLoader().getResource(synonymFilePath).getFile());
+        this.resourceLoader = resourceLoader;
     }
 
     public List<List<String>> queryRewrite(String query) {
@@ -58,7 +62,8 @@ public class QueryParser {
         List<String> searchKeys = Arrays.asList(query.split(" "));
         Map<String, List<String>> map = new HashMap<>();
 
-        try (BufferedReader br = new BufferedReader(new FileReader(synonymFile))) {
+//        try (BufferedReader br = new BufferedReader(new FileReader(synonymFile))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(resourceLoader.getResource(synonymFilePath).getInputStream()))) {
             String line ;
             JSONArray synonymsObj = null;
             while ((line = br.readLine()) != null) {

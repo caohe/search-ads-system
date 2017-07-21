@@ -148,9 +148,9 @@ public class AdEngine {
     }
 
     public boolean preloadCampaigns() {
-        File campaignFile = new File(getClass().getClassLoader().getResource(campaignFilePath).getFile());
-
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(campaignFile))) {
+//        File campaignFile = new File(getClass().getClassLoader().getResource(campaignFilePath).getFile());
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(resourceLoader.getResource(campaignFilePath).getInputStream()))) {
+//        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(campaignFile))) {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 JSONObject adObject = new JSONObject(line);
@@ -201,7 +201,7 @@ public class AdEngine {
 
         if (isEnablePClick) {
             for(Ad ad : level0Ads) {
-                predictCTR(ad, query, deviceIp, deviceId, queryCategory);
+                predictCTR(ad, query.replace(" ", "_"), deviceIp, deviceId, queryCategory);
             }
         }
 
@@ -297,6 +297,7 @@ public class AdEngine {
     }
 
     private double getFeatureValue(String key) {
+        log.info("Key = " + key);
         double value = 0.0;
         @SuppressWarnings("unchecked")
         String valueString = (String)featureCacheClient.get(key);
@@ -304,7 +305,7 @@ public class AdEngine {
             value = Double.parseDouble(valueString);
         }
 
-        log.info("Key" + key + ", value = " + value);
+        log.info("Value = " + value);
         return value;
     }
 }

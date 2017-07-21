@@ -17,7 +17,7 @@ import java.util.ArrayList;
 @Component
 public class CTRModel {
     private static ArrayList<Double> weightsLogistic;
-    private static Double biasLogistic;
+    private static double biasLogistic;
 
     @Autowired
     public CTRModel(ResourceLoader resourceLoader,
