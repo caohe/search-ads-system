@@ -48,7 +48,7 @@ public class AdEngine {
     private AdFilter adFilter;
     private AdCampaignManager adCampaignManager;
     private AdPricing adPricing;
-    private AdsAllocation adsAllocation;
+    private AdAllocation adAllocation;
 
     @Value("${index.server1.address}")
     private String server1;
@@ -68,7 +68,7 @@ public class AdEngine {
     @Autowired
     public AdEngine(IndexBuilder indexBuilder, AdService adService, CampaignService campaignService,
                     QueryParser queryParser, AdConverter adConverter, AdRanker adRanker, AdFilter adFilter,
-                    AdCampaignManager adCampaignManager, AdPricing adPricing, AdsAllocation adsAllocation) {
+                    AdCampaignManager adCampaignManager, AdPricing adPricing, AdAllocation adAllocation) {
         this.indexBuilder = indexBuilder;
         this.adService = adService;
         this.campaignService = campaignService;
@@ -78,7 +78,7 @@ public class AdEngine {
         this.adFilter = adFilter;
         this.adCampaignManager = adCampaignManager;
         this.adPricing = adPricing;
-        this.adsAllocation = adsAllocation;
+        this.adAllocation = adAllocation;
     }
 
     public boolean preloadAds(int cacheId) {
@@ -189,7 +189,7 @@ public class AdEngine {
         List<Ad> finalAds = adCampaignManager.applyBudget(deDupedAds);
         log.info("Final ads count = " + finalAds.size());
 
-        adsAllocation.allocateAds(finalAds);
+        adAllocation.allocateAds(finalAds);
 
         return finalAds;
     }

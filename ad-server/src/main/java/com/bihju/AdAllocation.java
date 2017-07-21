@@ -6,11 +6,11 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class AdsAllocation {
+public class AdAllocation {
     private final static double mainLinePriceThreshold = 4.5;
     private final static double mainLineRankScoreThreshold = 1.0;
 
-    protected AdsAllocation() {
+    protected AdAllocation() {
     }
 
     public void allocateAds(List<Ad> ads) {
