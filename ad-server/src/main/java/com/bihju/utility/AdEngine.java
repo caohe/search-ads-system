@@ -66,6 +66,9 @@ public class AdEngine {
     private CTRModel cTrModel;
     private boolean isEnablePClick = true;
     private ResourceLoader resourceLoader;
+    private File synonymFile;
+    private MemcachedClient synCache;
+    private final static int EXP = 72000; // 0: never expire
 
     @Value("${index.server1.address}")
     private String server1;
@@ -81,13 +84,15 @@ public class AdEngine {
     private String adFilePath2;
     @Value("classpath:${campaign_file_path}")
     private String campaignFilePath;
+    @Value("classpath:${synonym_file_path}")
+    private String synonymFilePath;
 
     @Autowired
     public AdEngine(IndexBuilder indexBuilder, AdService adService, CampaignService campaignService,
                     QueryParser queryParser, AdConverter adConverter, AdRanker adRanker, AdFilter adFilter,
                     AdCampaignManager adCampaignManager, AdPricing adPricing, AdAllocation adAllocation,
                     @Value("${cache.server}") String cacheServer, @Value("${cache.df_port}") int featurePort,
-                    CTRModel cTrModel, ResourceLoader resourceLoader) {
+                    CTRModel cTrModel, @Value("${cache.syn_port}") int synPort, ResourceLoader resourceLoader) {
         this.indexBuilder = indexBuilder;
         this.adService = adService;
         this.campaignService = campaignService;
@@ -100,9 +105,11 @@ public class AdEngine {
         this.adAllocation = adAllocation;
         if (!Strings.isNullOrEmpty(cacheServer)) {
             this.featureCacheClient = getMemCachedClient(cacheServer + ":" + featurePort);
+            this.synCache = getMemCachedClient(cacheServer + ":" + synPort);
         }
         this.cTrModel = cTrModel;
         this.resourceLoader = resourceLoader;
+
     }
 
     public boolean preloadAds(int cacheId) {
@@ -294,8 +301,8 @@ public class AdEngine {
 
         ad.pClick = cTrModel.predictCTRWithLogisticRegression(features);
         log.info("ad.pClick = " + ad.pClick);
-    }
 
+      }
     private double getFeatureValue(String key) {
         log.info("Key = " + key);
         double value = 0.0;
@@ -308,4 +315,28 @@ public class AdEngine {
         log.info("Value = " + value);
         return value;
     }
+
+    public boolean preloadSynonyms() {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(resourceLoader.getResource(synonymFilePath).getInputStream()))) {
+            String line ;
+            JSONArray synonymsObj = null;
+            while ((line = br.readLine()) != null) {
+                JSONObject synonymObject = new JSONObject(line);
+                String key = synonymObject.getString("word");
+                    synonymsObj = synonymObject.getJSONArray("synonyms");
+                    List<String> synonyms = new ArrayList<String>();
+                    for(int i = 0; i < synonymsObj.length();i++) {
+                        synonyms.add(synonymsObj.getString(i));
+                    }
+                    synCache.set(key, EXP, synonyms);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
 }

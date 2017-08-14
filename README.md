@@ -19,14 +19,14 @@ Implement a search Ads system which returns a list of recommended Ads for a sear
 - Online query rewrite
     - For each query received, web server looks for rewritten queries in key value store.
     - If found, use the rewritten queries to retrieve more matching Ads.
-    - If not found, look up synonym table for each query term and construct rewritten query online, 
+    - If not found, look up synonym table for each query term and construct rewritten query online,
       then send to Ads selector.
 - For example:
     ```bash
     query = "body care"
     synonyms for "body" = {"moisturizer", "shaving"}
     synonyms for "care' = {"aging", "skin"}
-    ``` 
+    ```
     Generated rewritten queries will be
     ```bash
     {"moisturizer aging", "moisturizer skin", "moisturizer care", "shaving aging", "shaving skin",
@@ -45,6 +45,7 @@ Implement a search Ads system which returns a list of recommended Ads for a sear
 > /usr/local/bin/memcached -d -p 11220    // tf cache
 > /usr/local/bin/memcached -d -p 11221    // df cache
 > /usr/local/bin/memcached -d -p 11222    // feature cache
+> /usr/local/bin/memcached -d -p 11223    // synonym-preloading cache
 
 ```
 ### Prepare DB
@@ -103,4 +104,3 @@ Should see a list of ads displayed.
 ## LICENSE
 
 [MIT](./License.txt)
-

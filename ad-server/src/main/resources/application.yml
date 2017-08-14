@@ -31,6 +31,7 @@ cache:
   tf_port: 11220
   df_port: 11221
   feature_port: 11222
+  syn_port: 11223
 
 index:
   server1:

@@ -45,6 +45,7 @@ public class AdServerController {
         adEngine.preloadAds(1);
         adEngine.preloadAds(2);
         adEngine.preloadCampaigns();
+        adEngine.preloadSynonyms();
         return "Success";
     }
 }

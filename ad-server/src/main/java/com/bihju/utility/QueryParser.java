@@ -18,15 +18,18 @@ public class QueryParser {
     private String synonymFilePath;
     private File synonymFile;
     private MemcachedClient synonymCache;
+    private MemcachedClient synCache;
     private ResourceLoader resourceLoader;
 
     @Autowired
     public QueryParser(@Value("classpath:${synonym_file_path}") String synonymFilePath,
                        @Value("${cache.server}") String cacheServer,
                        @Value("${cache.synonym_port}") int synonymPort,
+                       @Value("${cache.syn_port}") int synPort,
                         ResourceLoader resourceLoader) {
         this.synonymFilePath = synonymFilePath;
         synonymCache = Utility.getMemCachedClient(cacheServer + ":" + synonymPort);
+        synCache = Utility.getMemCachedClient(cacheServer + ":" + synPort);
 //        this.synonymFile = new File(getClass().getClassLoader().getResource(synonymFilePath).getFile());
         this.resourceLoader = resourceLoader;
     }
@@ -57,38 +60,17 @@ public class QueryParser {
         synonymCache.set((REWRITE_PREFIX + query).replace(" ", "_"), EXP, rewrittenQueries);
     }
 
-    // TODO Load synonyms to cache for faster access
     private List<String> calculateRewrittenQueries(String query) {
         List<String> searchKeys = Arrays.asList(query.split(" "));
         Map<String, List<String>> map = new HashMap<>();
 
-//        try (BufferedReader br = new BufferedReader(new FileReader(synonymFile))) {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(resourceLoader.getResource(synonymFilePath).getInputStream()))) {
-            String line ;
-            JSONArray synonymsObj = null;
-            while ((line = br.readLine()) != null) {
-                JSONObject synonymObject = new JSONObject(line);
-
-                String key = synonymObject.getString("word");
-                if (searchKeys.contains(key)) {
-                    synonymsObj = synonymObject.getJSONArray("synonyms");
-                    List<String> synonyms = new ArrayList<String>();
-                    for(int i = 0; i < synonymsObj.length();i++) {
-                        synonyms.add(synonymsObj.getString(i));
-                    }
-                    map.put(key, synonyms);
-                }
-            }
-
-            List<String> rewrittenQueries = Utility.getRewrittenQueries(query, map);
-            this.setRewrittenQueriesToCache(query, rewrittenQueries);
-            return rewrittenQueries;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        for(String key:searchKeys){
+            List<String> synonyms = (List<String>)synCache.get(key);
+            map.put(key, synonyms);
         }
 
-        return null;
+        List<String> rewrittenQueries = Utility.getRewrittenQueries(query, map);
+        this.setRewrittenQueriesToCache(query, rewrittenQueries);
+        return rewrittenQueries;
     }
 }
