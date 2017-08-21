@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 option java_multiple_files = true;
-option java_package = "com.bihju.adindex";
+option java_package = "com.hecao.adindex";
 option java_outer_classname = "SearchAds";
 option objc_class_prefix = "ADS";
 

@@ -266,7 +266,7 @@
                         <!--<manifest>-->
                             <!--<addClasspath>true</addClasspath>-->
                             <!--<classpathPrefix>lib</classpathPrefix>-->
-                            <!--<mainClass>com.bihju.AdServerApp</mainClass>-->
+                            <!--<mainClass>com.hecao.AdServerApp</mainClass>-->
                         <!--</manifest>-->
                     <!--</archive>-->
                 <!--</configuration>-->
@@ -307,7 +307,7 @@
                             <!--<addClasspath>true</addClasspath>-->
                             <!--<classpathPrefix>libs/</classpathPrefix>-->
                             <!--<mainClass>-->
-                                <!--com.bihju.AdServerApp-->
+                                <!--com.hecao.AdServerApp-->
                             <!--</mainClass>-->
                         <!--</manifest>-->
                     <!--</archive>-->
