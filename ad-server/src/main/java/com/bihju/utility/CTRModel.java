@@ -16,55 +16,29 @@ import java.util.ArrayList;
 @Log4j
 @Component
 public class CTRModel {
-    private static ArrayList<Double> weightsLogistic;
-    private static double biasLogistic;
+    // private static ArrayList<Double> weightsLogistic;
+    // private static double biasLogistic;
 
     @Autowired
-    public CTRModel(ResourceLoader resourceLoader,
-                  @Value("classpath:${logistic-regression-model-file}") String logisticRegressionModelFilePath) throws IOException {
-//    public CTRModel(@Value("classpath:${logistic-regression-model-file}") String logisticRegressionModelFilePath) throws IOException {
-        weightsLogistic = new ArrayList<>();
-
-//        File logisticRegressionModelFile = new File(getClass().getClassLoader().getResource(logisticRegressionModelFilePath).getFile());
-//        File logisticRegressionModelFile = resourceLoader.getResource(logisticRegressionModelFilePath).getFile();
-
-//        try (BufferedReader ctrLogisticReader = new BufferedReader(new FileReader(logisticRegressionModelFile))) {
-        try (BufferedReader ctrLogisticReader = new BufferedReader(new InputStreamReader(resourceLoader.getResource(logisticRegressionModelFilePath).getInputStream()))) {
-            String line;
-
-            while ((line = ctrLogisticReader.readLine()) != null) {
-                JSONObject parameterJson = new JSONObject(line);
-                JSONArray weights = parameterJson.isNull("weights") ? null : parameterJson.getJSONArray("weights");
-                if (weights == null) {
-                    continue;
-                }
-
-                for (int j = 0; j < weights.length(); j++) {
-                    weightsLogistic.add(weights.getDouble(j));
-                    log.info("Weights = " + weights.getDouble(j));
-
-                }
-
-                biasLogistic = parameterJson.getDouble("bias");
-                log.info("BiasLogistic = " + biasLogistic);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public CTRModel(){
+//    public CTRModel(@Value("classpath:${logistic-regressi
     }
 
     public double predictCTRWithLogisticRegression(ArrayList<Double> features) {
+        double biasLogistic = 0;
+        double[] weightsLogistic = {0, 0, 0, 0, 0.0679072624714, 0.0679072624714, 0.00184427035092, 0.00184427035092, 0.0679072624714, 0.0679072624714, 0};
         double pClick = biasLogistic;
 
-        if (features.size() != weightsLogistic.size()) {
+        if (features.size() != weightsLogistic.length) {
             log.error("ERROR : features size doesn't match with weights");
             return pClick;
         }
 
         for (int i = 0; i < features.size(); i++) {
-            pClick = pClick + weightsLogistic.get(i) * features.get(i);
+            // log.info(features.get(i));
+            pClick = pClick + weightsLogistic[i] * features.get(i);
         }
-
+        pClick /= 10;
         log.info("Sigmoid input pClick = " + pClick);
         pClick = Utility.sigmoid(pClick);
         return pClick;

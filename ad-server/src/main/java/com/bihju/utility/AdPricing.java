@@ -4,7 +4,9 @@ import com.bihju.domain.Ad;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import lombok.extern.log4j.Log4j;
 
+@Log4j
 @Component
 public class AdPricing {
     public void setCostPerClick(List<Ad> ads) {
@@ -14,6 +16,7 @@ public class AdPricing {
             } else {
                 ads.get(i).costPerClick = ads.get(i).bidPrice;
             }
+            // log.info(ads.get(i).costPerClick);
         }
     }
 }

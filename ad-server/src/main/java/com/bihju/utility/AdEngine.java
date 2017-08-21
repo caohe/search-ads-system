@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Random;
 
 @Log4j
 @Component
@@ -33,7 +34,7 @@ public class AdEngine {
     private static final String PRICE = "price";
     private static final String THUMBNAIL = "thumbnail";
     private static final String TITLE = "title";
-    private static final String DETAIL_URL = "detailUrl";
+    private static final String DETAIL_URL = "detail_url";
     private static final String BID_PRICE = "bidPrice";
     private static final String P_CLICK = "pClick";
     private static final String CATEGORY = "category";
@@ -91,7 +92,7 @@ public class AdEngine {
     public AdEngine(IndexBuilder indexBuilder, AdService adService, CampaignService campaignService,
                     QueryParser queryParser, AdConverter adConverter, AdRanker adRanker, AdFilter adFilter,
                     AdCampaignManager adCampaignManager, AdPricing adPricing, AdAllocation adAllocation,
-                    @Value("${cache.server}") String cacheServer, @Value("${cache.df_port}") int featurePort,
+                    @Value("${cache.server}") String cacheServer, @Value("${cache.feature_port}") int featurePort,
                     CTRModel cTrModel, @Value("${cache.syn_port}") int synPort, ResourceLoader resourceLoader) {
         this.indexBuilder = indexBuilder;
         this.adService = adService;
@@ -223,11 +224,27 @@ public class AdEngine {
         List<Ad> deDupedAds = adCampaignManager.deDupeAdsByCampaignId(level1Ads);
         log.info("After de-duping, ads size = " + deDupedAds.size());
 
+
+
         adPricing.setCostPerClick(deDupedAds);
+        // for (Ad ad : deDupedAds) {
+        //     log.info("ad.costPerClick = " + ad.getCostPerClick());
+        //     // ad.qualityScore = d * ad.pClick + (1.0 - d) * ad.relevanceScore;
+        //     // ad.rankScore = ad.qualityScore * ad.bidPrice;
+        // }
         List<Ad> finalAds = adCampaignManager.applyBudget(deDupedAds);
+
+        // for (Ad ad : finalAds) {
+        //     log.info("ad.pclick = " + ad.pClick);
+        //     // ad.qualityScore = d * ad.pClick + (1.0 - d) * ad.relevanceScore;
+        //     // ad.rankScore = ad.qualityScore * ad.bidPrice;
+        // }
+
         log.info("Final ads count = " + finalAds.size());
 
         adAllocation.allocateAds(finalAds);
+
+
 
         return finalAds;
     }
@@ -279,6 +296,8 @@ public class AdEngine {
 
     private void predictCTR(Ad ad, String query, String deviceId, String deviceIp, String queryCategory) {
         // Features has to be on the same order as the one used for training.
+        Random random = new Random();
+
         ArrayList<Double> features = new ArrayList<>();
 
         features.add(getFeatureValue(DEVICE_IP_CLICK_PREFIX + deviceIp));
@@ -287,32 +306,34 @@ public class AdEngine {
         features.add(getFeatureValue(DEVICE_ID_CLICK_PREFIX + deviceId));
         features.add(getFeatureValue(DEVICE_ID_IMPRESSION_PREFIX + deviceId));
 
-        features.add(getFeatureValue(AD_ID_CLICK_PREFIX + ad.adId));
-        features.add(getFeatureValue(AD_ID_IMPRESSION_PREFIX + ad.adId));
+        features.add(getFeatureValue(AD_ID_CLICK_PREFIX + ad.adId) == 0 ? (random.nextInt(73)%(73-35+1) + 35) :getFeatureValue(AD_ID_CLICK_PREFIX + ad.adId) );
+        features.add(getFeatureValue(AD_ID_IMPRESSION_PREFIX + ad.adId)== 0 ? (random.nextInt(73)%(73-35+1) + 35) :getFeatureValue(AD_ID_IMPRESSION_PREFIX + ad.adId) );
 
-        features.add(getFeatureValue(QUERY_CAMPAIGN_ID_CLICK_PREFIX + query + "_" + ad.campaignId));
-        features.add(getFeatureValue(QUERY_CAMPAIGN_ID_IMPRESSION_PREFIX + query + "_" + ad.campaignId));
+        features.add(getFeatureValue(QUERY_CAMPAIGN_ID_CLICK_PREFIX +  ad.campaignId) == 0 ? (random.nextInt(360)%(360-120+1) + 120):getFeatureValue(QUERY_CAMPAIGN_ID_CLICK_PREFIX +  ad.campaignId));
+        features.add(getFeatureValue(QUERY_CAMPAIGN_ID_IMPRESSION_PREFIX + ad.campaignId) == 0 ? (random.nextInt(360)%(360-120+1) + 120):getFeatureValue(QUERY_CAMPAIGN_ID_IMPRESSION_PREFIX + ad.campaignId));
 
-        features.add(getFeatureValue(QUERY_AD_ID_CLICK_PREFIX + query + "_" + ad.adId));
-        features.add(getFeatureValue(QUERY_AD_ID_IMPRESSION_PREFIX + query + "_" + ad.adId));
+        features.add(getFeatureValue(QUERY_AD_ID_CLICK_PREFIX + query + "_" + ad.adId)== 0 ? (random.nextInt(73)%(73-35+1) + 35) :getFeatureValue(QUERY_AD_ID_CLICK_PREFIX + query + "_" + ad.adId));
+        features.add(getFeatureValue(QUERY_AD_ID_IMPRESSION_PREFIX + query + "_" + ad.adId)== 0 ? (random.nextInt(73)%(73-35+1) + 35) :getFeatureValue(QUERY_AD_ID_IMPRESSION_PREFIX + query + "_" + ad.adId) );
 
         // Set to a large number if matches.
         features.add(queryCategory.equals(ad.category) ? 1000000.0 : 0.0);
 
+        // cTrModel.loadWeights();
         ad.pClick = cTrModel.predictCTRWithLogisticRegression(features);
         log.info("ad.pClick = " + ad.pClick);
 
       }
     private double getFeatureValue(String key) {
-        log.info("Key = " + key);
+        // log.info("Key = " + key);
         double value = 0.0;
         @SuppressWarnings("unchecked")
         String valueString = (String)featureCacheClient.get(key);
+        // log.info(valueString);
         if (!Strings.isNullOrEmpty(valueString)) {
             value = Double.parseDouble(valueString);
         }
 
-        log.info("Value = " + value);
+        // log.info("Value = " + value);
         return value;
     }
 

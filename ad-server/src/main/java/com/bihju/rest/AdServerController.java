@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/ad-server")
 @Log4j
 public class AdServerController {
@@ -33,9 +35,11 @@ public class AdServerController {
     @RequestMapping(value = "ads/{query}", method = RequestMethod.GET)
     public List<Ad> searchAds(@PathVariable String query, HttpServletRequest request,
                               HttpServletResponse response) throws IOException {
-        String deviceId = request.getParameter("did") == null ? "" : request.getParameter("did");
-        String deviceIp = request.getParameter("dip") == null ? "" : request.getParameter("dip");
+        String deviceId = request.getParameter("did") == null ? "87843" : request.getParameter("did");
+        String deviceIp = request.getParameter("dip") == null ? "32772" : request.getParameter("dip");
         String queryCategory = request.getParameter("qclass") == null ? "" : request.getParameter("qclass");
+
+        // log.info(queryCategory);
 
         return adEngine.selectAds(query, deviceIp, deviceId, queryCategory);
     }

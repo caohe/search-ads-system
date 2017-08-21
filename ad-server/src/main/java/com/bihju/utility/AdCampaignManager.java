@@ -42,14 +42,22 @@ public class AdCampaignManager {
 
     public List<Ad> applyBudget(List<Ad> inputAds) {
         List<Ad> finalAds = new ArrayList<>();
-        for (Ad inputAd : inputAds) {
-            Ad ad = adService.getAd(inputAd.getAdId());
+        for (Ad ad : inputAds) {
+
+          // log.info("inputAd.AdId = " + inputAd.getAdId());
+          // log.info("inputAd.rankScore = " + inputAd.getRankScore());
+          // log.info("inputAd.costPerClick = " + inputAd.getCostPerClick());
+
+            // Ad ad = adService.getAd(inputAd.getAdId());
             Long campaignId = ad.getCampaignId();
             Campaign campaign = campaignService.getCampaign(campaignId);
             if (campaign == null) {
                 log.error("Failed to find campaign, campaignId = " + campaignId);
                 continue;
             }
+            log.info("ad.AdId = " + ad.getAdId());
+            // log.info("ad.qualityScore = " + ad.getQualityScore());
+            // log.info("ad.rankScore = " + ad.getRankScore());
             log.info("ad.costPerClick = " + ad.getCostPerClick());
             log.info("campaignId = " + campaignId);
             log.info("budget left = " + campaign.getBudget());
